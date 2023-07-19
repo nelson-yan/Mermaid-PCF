@@ -29,29 +29,26 @@ export class Mermaid implements ComponentFramework.StandardControl<IInputs, IOut
         this._notifyOutputChanged = notifyOutputChanged;
 
         this._container = document.createElement("pre")
+        this._container.setAttribute("width", "300px")
+        this._container.setAttribute("heigth", "300px")
+        this._container.setAttribute("viewBox", `0 0 400 400`)
+        this._container.classList.add("mermaid")
         container.appendChild(this._container)
-        container.setAttribute("width", "300px")
-        container.setAttribute("heigth", "300px")
-        container.setAttribute("viewBox", `0 0 400 400`)
-        container.classList.add("mermaid")
-        container.id = "mermaid2"  
-
-        //var mermaidText = !context.parameters.mermaid_text.raw! || context.parameters.mermaid_text.raw! == 'val' ? 'graph TB\nsamplea-->sampleb' :  context.parameters.mermaid_text.raw!
-        //this.updateMermaidView( mermaidText)
-        
+        let config = { startOnLoad: false, flowchart: { useMaxWidth: false, htmlLabels: true } };
+        mermaid.initialize(config);
     }
 
     public updateMermaidView( text:string ) {
 
-        var _obj = document.getElementById("mermaid2")!
-        mermaid.render('mermaid', text)
+        let mermaidText = !text ||  text == 'val'? 'graph TB\nA-->B' :  text
+
+        mermaid.render('mermaid', mermaidText)
         .then( res => {
-            _obj.innerHTML = res.svg
-            console.log(_obj.innerHTML)
-            this._notifyOutputChanged();
-            
+            this._container.innerHTML = res.svg
+            //this._notifyOutputChanged();
         })
-        .catch( e => console.log("e: " + e))
+        .catch( e => this._container.innerHTML = e)
+
     }
 
     /**
@@ -60,14 +57,15 @@ export class Mermaid implements ComponentFramework.StandardControl<IInputs, IOut
      */
     public updateView(context: ComponentFramework.Context<IInputs>): void
     {
-        console.log(context.updatedProperties)
+        //console.log(context.updatedProperties.indexOf("mermaid_text"))
         // Add code to update control view
-        if(context.updatedProperties.indexOf("mermaid_text")>-1)
-        {
-            var mermaidText = !context.parameters.mermaid_text.raw! ||  context.parameters.mermaid_text.raw! == 'val'? 'graph TB\nsamplea-->sampleb' :  context.parameters.mermaid_text.raw!
-            this.updateMermaidView( mermaidText )
-        }
-        
+        // if(context.updatedProperties.indexOf("mermaid_text")>-1)
+        // {
+        //     //let mermaidText = !context.parameters.mermaid_text.raw! ||  context.parameters.mermaid_text.raw! == 'val'? 'graph TB\nsamplea-->sampleb' :  context.parameters.mermaid_text.raw!
+        //     this.updateMermaidView( context.parameters.mermaid_text.raw! )
+        // }
+
+        this.updateMermaidView( context.parameters.mermaid_text.raw! )
     }
 
     /**
@@ -77,7 +75,7 @@ export class Mermaid implements ComponentFramework.StandardControl<IInputs, IOut
     public getOutputs(): IOutputs
     {
         return {
-            svg: document.getElementById("mermaid2")?.innerHTML
+            svg: document.querySelector(".mermaid")?.innerHTML
         };
     }
 
